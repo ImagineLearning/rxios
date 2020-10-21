@@ -7,28 +7,36 @@ export interface rxiosConfig extends AxiosRequestConfig {
 
 class rxios {
 	public _httpClient: AxiosInstance;
+	private _requst: any;
 
 	constructor(private options: rxiosConfig = {}) {
 		this._httpClient = axios.create(options);
 	}
 
 	private _makeRequest<T>(method: string, url: string, queryParams?: object, body?: object, fullResponse: boolean = false) {
-		let request: AxiosPromise<T>;
+    let request: AxiosPromise<T>;
+    
+    if (this._requst) {
+      this._requst.cancel(); 
+    }
+
+    this._requst = axios.CancelToken.source();  
+
 		switch (method) {
 			case 'GET':
-				request = this._httpClient.get<T>(url, {params: queryParams});
+				request = this._httpClient.get<T>(url, {params: queryParams, cancelToken: this._requst.token });
 				break;
 			case 'POST':
-				request = this._httpClient.post<T>(url, body, {params: queryParams});
+				request = this._httpClient.post<T>(url, body, {params: queryParams, cancelToken: this._requst.token});
 				break;
 			case 'PUT':
-				request = this._httpClient.put<T>(url, body, {params: queryParams});
+				request = this._httpClient.put<T>(url, body, {params: queryParams, cancelToken: this._requst.token});
 				break;
 			case 'PATCH':
-				request = this._httpClient.patch<T>(url, body, {params: queryParams});
+				request = this._httpClient.patch<T>(url, body, {params: queryParams, cancelToken: this._requst.token});
 				break;
 			case 'DELETE':
-				request = this._httpClient.delete(url, {params: queryParams});
+				request = this._httpClient.delete(url, {params: queryParams, cancelToken: this._requst.token});
 				break;
 
 			default:
@@ -39,8 +47,11 @@ class rxios {
 				subscriber.next(fullResponse ? response : response.data);
 				subscriber.complete();
 			}).catch((err: Error) => {
-				subscriber.error(err);
-				subscriber.complete();
+        if (axios.isCancel(err)) {
+          err.message = `Previous ${method} canceled.`;
+        }
+        subscriber.error(err);
+        subscriber.complete();
 			});
 		});
 	}

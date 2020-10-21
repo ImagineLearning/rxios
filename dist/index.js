@@ -9,21 +9,25 @@ class rxios {
     }
     _makeRequest(method, url, queryParams, body, fullResponse = false) {
         let request;
+        if (this._requst) {
+            this._requst.cancel();
+        }
+        this._requst = axios_1.default.CancelToken.source();
         switch (method) {
             case 'GET':
-                request = this._httpClient.get(url, { params: queryParams });
+                request = this._httpClient.get(url, { params: queryParams, cancelToken: this._requst.token });
                 break;
             case 'POST':
-                request = this._httpClient.post(url, body, { params: queryParams });
+                request = this._httpClient.post(url, body, { params: queryParams, cancelToken: this._requst.token });
                 break;
             case 'PUT':
-                request = this._httpClient.put(url, body, { params: queryParams });
+                request = this._httpClient.put(url, body, { params: queryParams, cancelToken: this._requst.token });
                 break;
             case 'PATCH':
-                request = this._httpClient.patch(url, body, { params: queryParams });
+                request = this._httpClient.patch(url, body, { params: queryParams, cancelToken: this._requst.token });
                 break;
             case 'DELETE':
-                request = this._httpClient.delete(url, { params: queryParams });
+                request = this._httpClient.delete(url, { params: queryParams, cancelToken: this._requst.token });
                 break;
             default:
                 throw new Error('Method not supported');
@@ -33,6 +37,9 @@ class rxios {
                 subscriber.next(fullResponse ? response : response.data);
                 subscriber.complete();
             }).catch((err) => {
+                if (axios_1.default.isCancel(err)) {
+                    err.message = `Previous ${method} canceled.`;
+                }
                 subscriber.error(err);
                 subscriber.complete();
             });
