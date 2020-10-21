@@ -6,7 +6,7 @@ export interface rxiosConfig extends AxiosRequestConfig {
 declare class rxios {
     private options;
     _httpClient: AxiosInstance;
-    private _requst;
+    private _cancelTokenSource;
     constructor(options?: rxiosConfig);
     private _makeRequest;
     request<T>(config: object): Observable<any>;

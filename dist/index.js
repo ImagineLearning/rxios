@@ -5,29 +5,30 @@ const Observable_1 = require("rxjs/Observable");
 class rxios {
     constructor(options = {}) {
         this.options = options;
+        this._cancelTokenSource = null;
         this._httpClient = axios_1.default.create(options);
     }
     _makeRequest(method, url, queryParams, body, fullResponse = false) {
         let request;
-        if (this._requst) {
-            this._requst.cancel();
+        if (this._cancelTokenSource.token) {
+            this._cancelTokenSource.cancel();
         }
-        this._requst = axios_1.default.CancelToken.source();
+        this._cancelTokenSource = axios_1.default.CancelToken.source();
         switch (method) {
             case 'GET':
-                request = this._httpClient.get(url, { params: queryParams, cancelToken: this._requst.token });
+                request = this._httpClient.get(url, { params: queryParams, cancelToken: this._cancelTokenSource.token });
                 break;
             case 'POST':
-                request = this._httpClient.post(url, body, { params: queryParams, cancelToken: this._requst.token });
+                request = this._httpClient.post(url, body, { params: queryParams, cancelToken: this._cancelTokenSource.token });
                 break;
             case 'PUT':
-                request = this._httpClient.put(url, body, { params: queryParams, cancelToken: this._requst.token });
+                request = this._httpClient.put(url, body, { params: queryParams, cancelToken: this._cancelTokenSource.token });
                 break;
             case 'PATCH':
-                request = this._httpClient.patch(url, body, { params: queryParams, cancelToken: this._requst.token });
+                request = this._httpClient.patch(url, body, { params: queryParams, cancelToken: this._cancelTokenSource.token });
                 break;
             case 'DELETE':
-                request = this._httpClient.delete(url, { params: queryParams, cancelToken: this._requst.token });
+                request = this._httpClient.delete(url, { params: queryParams, cancelToken: this._cancelTokenSource.token });
                 break;
             default:
                 throw new Error('Method not supported');
@@ -38,7 +39,7 @@ class rxios {
                 subscriber.complete();
             }).catch((err) => {
                 if (axios_1.default.isCancel(err)) {
-                    err.message = `Previous ${method} canceled.`;
+                    err.message = `Previous ${method} cancelled.`;
                 }
                 subscriber.error(err);
                 subscriber.complete();
