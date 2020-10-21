@@ -7,7 +7,7 @@ export interface rxiosConfig extends AxiosRequestConfig {
 
 class rxios {
 	public _httpClient: AxiosInstance;
-	private _requst: any;
+	private _requset: any;
 
 	constructor(private options: rxiosConfig = {}) {
 		this._httpClient = axios.create(options);
@@ -16,27 +16,27 @@ class rxios {
 	private _makeRequest<T>(method: string, url: string, queryParams?: object, body?: object, fullResponse: boolean = false) {
     let request: AxiosPromise<T>;
     
-    if (this._requst) {
-      this._requst.cancel(); 
+    if (this._requset) {
+      this._requset.cancel(); 
     }
 
-    this._requst = axios.CancelToken.source();  
+    this._requset = axios.CancelToken.source();  
 
 		switch (method) {
 			case 'GET':
-				request = this._httpClient.get<T>(url, {params: queryParams, cancelToken: this._requst.token });
+				request = this._httpClient.get<T>(url, {params: queryParams, cancelToken: this._requset.token });
 				break;
 			case 'POST':
-				request = this._httpClient.post<T>(url, body, {params: queryParams, cancelToken: this._requst.token});
+				request = this._httpClient.post<T>(url, body, {params: queryParams, cancelToken: this._requset.token});
 				break;
 			case 'PUT':
-				request = this._httpClient.put<T>(url, body, {params: queryParams, cancelToken: this._requst.token});
+				request = this._httpClient.put<T>(url, body, {params: queryParams, cancelToken: this._requset.token});
 				break;
 			case 'PATCH':
-				request = this._httpClient.patch<T>(url, body, {params: queryParams, cancelToken: this._requst.token});
+				request = this._httpClient.patch<T>(url, body, {params: queryParams, cancelToken: this._requset.token});
 				break;
 			case 'DELETE':
-				request = this._httpClient.delete(url, {params: queryParams, cancelToken: this._requst.token});
+				request = this._httpClient.delete(url, {params: queryParams, cancelToken: this._requset.token});
 				break;
 
 			default:
@@ -48,7 +48,7 @@ class rxios {
 				subscriber.complete();
 			}).catch((err: Error) => {
         if (axios.isCancel(err)) {
-          err.message = `Previous ${method} canceled.`;
+          err.message = `Previous ${method} cancelled.`;
         }
         subscriber.error(err);
         subscriber.complete();
