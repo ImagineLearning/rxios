@@ -1,5 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosPromise, AxiosResponse, CancelTokenSource } from 'axios';
 import { Observable } from 'rxjs/Observable';
+import { Md5 } from 'ts-md5';
+
 
 export interface rxiosConfig extends AxiosRequestConfig {
 	localCache?: boolean;
@@ -7,7 +9,7 @@ export interface rxiosConfig extends AxiosRequestConfig {
 
 class rxios {
 	public _httpClient: AxiosInstance;
-	private _cancelTokenSource: CancelTokenSource = null;
+  private _tokens: any = {};
 
 	constructor(private options: rxiosConfig = {}) {
 		this._httpClient = axios.create(options);
@@ -15,28 +17,31 @@ class rxios {
 
 	private _makeRequest<T>(method: string, url: string, queryParams?: object, body?: object, fullResponse: boolean = false) {
     let request: AxiosPromise<T>;
+
+    const hashStr: string = `${url}${JSON.stringify(queryParams)}${JSON.stringify(body)}`;
+    const hash: string = Md5.hashStr(hashStr) as string;
     
-    if (this._cancelTokenSource.token) {
-      this._cancelTokenSource.cancel(); 
+    if (this._tokens[hash]){
+      this._tokens[hash].cancel(); 
     }
 
-    this._cancelTokenSource = axios.CancelToken.source();  
+    this._tokens[hash] = axios.CancelToken.source(); 
 
 		switch (method) {
 			case 'GET':
-				request = this._httpClient.get<T>(url, {params: queryParams, cancelToken: this._cancelTokenSource.token });
+				request = this._httpClient.get<T>(url, {params: queryParams, cancelToken: this._tokens[hash].token });
 				break;
 			case 'POST':
-				request = this._httpClient.post<T>(url, body, {params: queryParams, cancelToken: this._cancelTokenSource.token});
+				request = this._httpClient.post<T>(url, body, {params: queryParams, cancelToken: this._tokens[hash].token});
 				break;
 			case 'PUT':
-				request = this._httpClient.put<T>(url, body, {params: queryParams, cancelToken: this._cancelTokenSource.token});
+				request = this._httpClient.put<T>(url, body, {params: queryParams, cancelToken: this._tokens[hash].token});
 				break;
 			case 'PATCH':
-				request = this._httpClient.patch<T>(url, body, {params: queryParams, cancelToken: this._cancelTokenSource.token});
+				request = this._httpClient.patch<T>(url, body, {params: queryParams, cancelToken: this._tokens[hash].token});
 				break;
 			case 'DELETE':
-				request = this._httpClient.delete(url, {params: queryParams, cancelToken: this._cancelTokenSource.token});
+				request = this._httpClient.delete(url, {params: queryParams, cancelToken: this._tokens[hash].token});
 				break;
 
 			default:

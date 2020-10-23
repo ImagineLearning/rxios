@@ -54,6 +54,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "rxjs": "^6.5.2",
-    "rxjs-compat": "^6.5.2"
+    "rxjs-compat": "^6.5.2",
+    "ts-md5": "^1.2.7"
   }
 }
